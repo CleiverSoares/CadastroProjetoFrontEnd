@@ -3,8 +3,8 @@
 
 import { createRouter, createWebHistory } from 'vue-router'
 import CadastrarPessoa from '../views//CadastrarPessoa.vue'
-import pessoas  from '../components/HelloWorld.vue'
-import teste  from '../components/teste.vue'
+import pessoas  from '../views/Pessoas.vue'
+import teste  from '../components/ModalPessoas.vue'
 
 const routes = [
   {

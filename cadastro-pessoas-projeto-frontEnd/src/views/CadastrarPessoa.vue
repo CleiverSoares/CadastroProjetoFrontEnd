@@ -1,45 +1,76 @@
 <template>
-  <div>
-    <form @submit.prevent="handleSubmit">
-      <div>
-        <label for="nome">Nome:</label>
-        <input type="text" id="nome" v-model="form.nome" required>
-      </div>
-      <div>
-        <label for="telefone">Telefone:</label>
-        <input type="text" id="telefone" v-model="form.telefone" required>
-      </div>
-      <div>
-        <label for="email">Email:</label>
-        <input type="email" id="email" v-model="form.email" required>
-      </div>
-      <div>
-        <label for="cpf">CPF:</label>
-        <input type="text" id="cpf" v-model="form.cpf" required>
-      </div>
-      <div>
-        <label for="foto">Foto:</label>
-        <input type="file" id="foto" @change="handleFileUpload" required>
-      </div>
-      <div>
-        <label for="data_nasc_pessoa">Data de Nascimento:</label>
-        <input type="date" id="data_nasc_pessoa" v-model="form.data_nasc_pessoa" required>
-      </div>
-      <div>
-        <label for="categoria_esporte">Categoria de Esporte:</label>
-        <select id="categoria_esporte" v-model="form.categoria_esporte" multiple required>
-          <option v-for="categoria in categorias" :key="categoria.id_categoria" :value="categoria.id_categoria">
-            {{ categoria.nome_categoria }}
-          </option>
-        </select>
-      </div>
-      <div>
-        <button type="submit">Salvar</button>
-      </div>
-    </form>
+  <div class="uk-container uk-margin-large-top">
+    <div class="uk-text-center uk-margin">
+      <img src="https://projetodoar.cloud/images/novas-img/logo-doar.png" alt="Logo" class="logo">
+    </div>
+    <div class="uk-card uk-card-default uk-card-body uk-box-shadow-medium">
+      <form @submit.prevent="handleSubmit" class="uk-form-stacked">
+        <legend class="uk-legend uk-text-primary">Cadastro de Pessoa</legend>
+
+        <div class="uk-margin">
+          <label class="uk-form-label" for="nome">Nome:</label>
+          <div class="uk-form-controls">
+            <input class="uk-input" type="text" id="nome" v-model="form.nome" required>
+          </div>
+        </div>
+
+        <div class="uk-margin">
+          <label class="uk-form-label" for="telefone">Telefone:</label>
+          <div class="uk-form-controls">
+            <input class="uk-input" type="text" id="telefone" v-model="form.telefone" required>
+          </div>
+        </div>
+
+        <div class="uk-margin">
+          <label class="uk-form-label" for="email">Email:</label>
+          <div class="uk-form-controls">
+            <input class="uk-input" type="email" id="email" v-model="form.email" required>
+          </div>
+        </div>
+
+        <div class="uk-margin">
+          <label class="uk-form-label" for="cpf">CPF:</label>
+          <div class="uk-form-controls">
+            <input class="uk-input" type="text" id="cpf" v-model="form.cpf" required>
+          </div>
+        </div>
+
+        <div class="uk-margin">
+          <label class="uk-form-label" for="foto">Foto:</label>
+          <div class="uk-form-controls">
+            <input class="uk-input" type="file" id="foto" @change="handleFileUpload" required>
+          </div>
+          <div v-if="form.fotoPreview" class="uk-margin-small div-foto">
+            <img :src="form.fotoPreview" alt="Preview da Foto" class="preview-image">
+          </div>
+        </div>
+
+        <div class="uk-margin">
+          <label class="uk-form-label" for="data_nasc_pessoa">Data de Nascimento:</label>
+          <div class="uk-form-controls">
+            <input class="uk-input" type="date" id="data_nasc_pessoa" v-model="form.data_nasc_pessoa" required>
+          </div>
+        </div>
+
+        <div class="uk-margin">
+          <label class="uk-form-label" for="categoria_esporte">Categoria de Esporte:</label>
+          <div class="uk-form-controls">
+            <div v-for="categoria in categorias" :key="categoria.id_categoria" class="uk-margin-small">
+              <label>
+                <input class="uk-checkbox" type="checkbox" :value="categoria.id_categoria" v-model="form.categoria_esporte">
+                {{ categoria.nome_categoria }}
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="uk-margin">
+          <button class="uk-button uk-button-primary" type="submit">Salvar</button>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
-
 
 <script setup>
 import { reactive, onMounted } from 'vue';
@@ -52,7 +83,8 @@ const form = reactive({
   email: '',
   cpf: '',
   foto: null,
-  data_nasc_pessoa: null, // Inicializado como null para evitar erro inicial
+  fotoPreview: null, // Campo para a prévia da imagem
+  data_nasc_pessoa: null,
   categoria_esporte: [],
 });
 
@@ -62,14 +94,15 @@ const handleFileUpload = (event) => {
   const file = event.target.files[0];
   if (file) {
     new Compressor(file, {
-      quality: 0.6, // Ajuste a qualidade de 0 a 1 (opcional)
-      maxWidth: 800, // Largura máxima da imagem (opcional)
-      maxHeight: 600, // Altura máxima da imagem (opcional)
+      quality: 0.6,
+      maxWidth: 800,
+      maxHeight: 600,
       success(result) {
         const reader = new FileReader();
         reader.readAsDataURL(result);
         reader.onload = () => {
-          form.foto = reader.result.split(',')[1]; // Base64 sem o prefixo
+          form.foto = reader.result.split(',')[1];
+          form.fotoPreview = reader.result; // Atualiza a prévia da imagem
         };
         reader.onerror = (error) => {
           console.error('Erro ao converter arquivo para Base64:', error);
@@ -82,7 +115,6 @@ const handleFileUpload = (event) => {
   }
 };
 
-
 onMounted(async () => {
   try {
     const response = await services.categoriasEsporte.getCategorias();
@@ -94,11 +126,7 @@ onMounted(async () => {
 
 const handleSubmit = async () => {
   try {
-    // Verifica se form.data_nasc_pessoa é uma string (vindo diretamente do input type="date")
-    // Se sim, converte para Date
     const dataNascimento = typeof form.data_nasc_pessoa === 'string' ? new Date(form.data_nasc_pessoa) : form.data_nasc_pessoa;
-
-    // Formata a data no formato YYYY-MM-DD antes de enviar
     const dataNascimentoISO = dataNascimento.toISOString().split('T')[0];
 
     const response = await services.pessoas.criarPessoa({
@@ -112,43 +140,72 @@ const handleSubmit = async () => {
     });
 
     console.log('Registro criado:', response.data);
-
-    // Redirecionar para outra página após o cadastro
-    // Exemplo: router.push('/lista-pessoas');
   } catch (error) {
     console.error('Erro ao cadastrar pessoa:', error);
   }
 };
 </script>
 
-
 <style scoped>
-/* Estilos opcionais para o componente */
-label {
-  display: block;
-  margin-bottom: 0.5rem;
+.uk-container {
+  max-width: 600px;
+  background-color: #f7f9fc;
+  border-radius: 10px;
+  padding: 20px;
 }
-input, select {
-  width: 100%;
-  padding: 0.5rem;
-  margin-bottom: 1rem;
+
+.logo {
+  max-width: 150px;
+  margin: 0 auto;
 }
-button {
-  padding: 0.5rem 1rem;
+
+.header-image {
+  max-width: 100%;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.uk-legend {
+  font-size: 24px;
+  color: #007BFF;
+}
+
+.uk-form-label {
+  font-size: 16px;
+  color: #333;
+}
+
+.uk-input, .uk-select, .uk-checkbox {
+  border-radius: 5px;
+}
+
+.uk-button-primary {
   background-color: #007BFF;
+  border-color: #007BFF;
   color: white;
-  border: none;
-  cursor: pointer;
 }
-button:hover {
+
+.uk-button-primary:hover {
   background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+.uk-card {
+  background-color: white;
+  border-radius: 10px;
+}
+
+.preview-image {
+  max-width: 100%;
+  height: 150px;
+  margin-top: 10px;
+  border-radius: 5px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+.div-foto{
+  display: flex;
+}
+.uk-checkbox:checked{
+  border-radius: 150px;;
 }
 </style>
-
-
-
-
-
-
-
-
